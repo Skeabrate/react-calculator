@@ -17,46 +17,27 @@ function App() {
 
     const splitVal = (val) => val.split(' ')[0];
 
-    const equalsHandler = () => {
-        if (prevValue && currValue) {
-            switch (operation) {
-                case '+':
-                    setCurrValue(+splitVal(prevValue) + +currValue);
-                    break;
+    const calculateHandler = (val) => {
+        switch (operation) {
+            case '+':
+                return +splitVal(val) + +currValue;
 
-                case '-':
-                    setCurrValue(+splitVal(prevValue) - +currValue);
-                    break;
+            case '-':
+                return +splitVal(val) - +currValue;
 
-                case '*':
-                    setCurrValue(+splitVal(prevValue) * +currValue);
-                    break;
+            case '*':
+                return +splitVal(val) * +currValue;
 
-                case '/':
-                    setCurrValue(+splitVal(prevValue) / +currValue);
-                    break;
-            }
-            setPrevValue('');
+            case '/':
+                return +splitVal(val) / +currValue;
         }
     };
 
-    const handlePrevValue = (type) => {
-        setPrevValue((state) => {
-            switch (operation) {
-                case '+':
-                    return +splitVal(state) + +currValue + ' ' + type;
-
-                case '-':
-                    return +splitVal(state) - +currValue + ' ' + type;
-
-                case '*':
-                    return +splitVal(state) * +currValue + ' ' + type;
-
-                case '/':
-                    return +splitVal(state) / +currValue + ' ' + type;
-            }
-        }, setCurrValue(''));
-    };
+    const prevValueHandler = (type) =>
+        setPrevValue(
+            (state) => calculateHandler(state) + ' ' + type,
+            setCurrValue('')
+        );
 
     const actionHandler = (type) => {
         if (type === '-' && !currValue & (currValue !== '-')) {
@@ -64,10 +45,17 @@ function App() {
         } else setOperation(type);
 
         if (currValue && currValue !== '-' && prevValue) {
-            handlePrevValue(type);
+            prevValueHandler(type);
         } else if (currValue && +currValue && !prevValue && currValue !== '-') {
             setPrevValue(currValue + ' ' + type);
             setCurrValue('');
+        }
+    };
+
+    const equalsHandler = () => {
+        if (prevValue && currValue) {
+            setCurrValue(calculateHandler(prevValue));
+            setPrevValue('');
         }
     };
 
@@ -81,7 +69,7 @@ function App() {
     const resetHandler = () => {
         setPrevValue('');
         setCurrValue('');
-        setOperation();
+        setOperation('');
     };
 
     const removeLetterHandler = () =>
