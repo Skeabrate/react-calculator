@@ -13,71 +13,103 @@ import {
 function App() {
     const [prevValue, setPrevValue] = useState('');
     const [currValue, setCurrValue] = useState('');
+    const [operation, setOperation] = useState();
 
-    const divideHandler = () => {};
-
-    const multiplyHandler = () => {};
-
-    const addHandler = () => {
-        if (prevValue) {
-            setPrevValue(
-                (state) =>
-                    parseInt(state.split(' ')[0]) + parseInt(currValue) + ' +'
-            );
-            setCurrValue('');
-        } else {
-            setPrevValue(currValue + ' +');
-            setCurrValue('');
-        }
-    };
-
-    const subtractHandler = () => {};
+    const splitVal = (val) => val.split(' ')[0];
 
     const equalsHandler = () => {
         if (prevValue && currValue) {
-            switch (prevValue.split(' ')[1]) {
+            switch (operation) {
                 case '+':
-                    setCurrValue(
-                        (
-                            parseInt(prevValue.split(' ')[0]) +
-                            parseInt(currValue)
-                        ).toString()
-                    );
-                    setPrevValue('');
+                    setCurrValue(+splitVal(prevValue) + +currValue);
+                    break;
+
+                case '-':
+                    setCurrValue(+splitVal(prevValue) - +currValue);
+                    break;
+
+                case '*':
+                    setCurrValue(+splitVal(prevValue) * +currValue);
+                    break;
+
+                case '/':
+                    setCurrValue(+splitVal(prevValue) / +currValue);
                     break;
             }
+            setPrevValue('');
         }
     };
 
-    const buttonHandler = (item) => {
+    const handlePrevValue = (type) => {
+        setPrevValue((state) => {
+            switch (operation) {
+                case '+':
+                    return +splitVal(state) + +currValue + ' ' + type;
+
+                case '-':
+                    return +splitVal(state) - +currValue + ' ' + type;
+
+                case '*':
+                    return +splitVal(state) * +currValue + ' ' + type;
+
+                case '/':
+                    return +splitVal(state) / +currValue + ' ' + type;
+            }
+        }, setCurrValue(''));
+    };
+
+    const actionHandler = (type) => {
+        if (type === '-' && !currValue & (currValue !== '-')) {
+            setCurrValue('-');
+        } else setOperation(type);
+
+        if (currValue && currValue !== '-' && prevValue) {
+            handlePrevValue(type);
+        } else if (currValue && +currValue && !prevValue && currValue !== '-') {
+            setPrevValue(currValue + ' ' + type);
+            setCurrValue('');
+        }
+    };
+
+    const dotHandler = () => {
+        if (!currValue) setCurrValue('0.');
+        else if (currValue && !currValue.toString().includes('.')) {
+            setCurrValue((state) => state + '.');
+        }
+    };
+
+    const resetHandler = () => {
+        setPrevValue('');
+        setCurrValue('');
+        setOperation();
+    };
+
+    const removeLetterHandler = () =>
+        setCurrValue(currValue.substring(0, currValue.length - 1));
+
+    const mainSwitch = (item) => {
         switch (item) {
             case 'AC':
-                setPrevValue('');
-                setCurrValue('');
+                resetHandler();
                 break;
 
             case 'DEL':
-                setCurrValue(currValue.substring(0, currValue.length - 1));
+                removeLetterHandler();
                 break;
 
             case '/':
-                divideHandler();
-                break;
-
             case '*':
-                multiplyHandler();
-                break;
-
             case '+':
-                addHandler();
-                break;
-
             case '-':
-                subtractHandler();
+                actionHandler(item);
                 break;
 
             case '=':
                 equalsHandler();
+                break;
+
+            case '.':
+                dotHandler();
                 break;
 
             default:
@@ -99,7 +131,7 @@ function App() {
                             key={index}
                             first={index === 0}
                             last={index === calculatorData.length - 1}
-                            onClick={() => buttonHandler(item)}
+                            onClick={() => mainSwitch(item)}
                         >
                             {item === '/' ? <>&#247;</> : item}
                         </Button>
