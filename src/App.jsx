@@ -17,25 +17,16 @@ function App() {
 
     const splitVal = (val) => val.split(' ')[0];
 
-    const calculateHandler = (val) => {
-        switch (operation) {
-            case '+':
-                return +splitVal(val) + +currValue;
-
-            case '-':
-                return +splitVal(val) - +currValue;
-
-            case '*':
-                return +splitVal(val) * +currValue;
-
-            case '/':
-                return +splitVal(val) / +currValue;
-        }
+    const calculateObj = {
+        '+': (val) => +splitVal(val) + +currValue,
+        '-': (val) => +splitVal(val) - +currValue,
+        '*': (val) => +splitVal(val) * +currValue,
+        '/': (val) => +splitVal(val) / +currValue,
     };
 
     const prevValueHandler = (type) =>
         setPrevValue(
-            (state) => calculateHandler(state) + ' ' + type,
+            (state) => operation && calculateObj[operation](state) + ' ' + type,
             setCurrValue('')
         );
 
@@ -52,13 +43,6 @@ function App() {
         }
     };
 
-    const equalsHandler = () => {
-        if (prevValue && currValue) {
-            setCurrValue(calculateHandler(prevValue));
-            setPrevValue('');
-        }
-    };
-
     const dotHandler = () => {
         if (!currValue) setCurrValue('0.');
         else if (currValue && !currValue.toString().includes('.')) {
@@ -66,43 +50,24 @@ function App() {
         }
     };
 
-    const resetHandler = () => {
-        setPrevValue('');
-        setCurrValue('');
-        setOperation('');
-    };
+    const mainSwitchObj = {
+        AC: () => {
+            setPrevValue('');
+            setCurrValue('');
+            setOperation('');
+        },
 
-    const removeLetterHandler = () =>
-        setCurrValue(currValue.substring(0, currValue.length - 1));
+        DEL: () => setCurrValue(currValue.toString().slice(0, -1)),
 
-    const mainSwitch = (item) => {
-        switch (item) {
-            case 'AC':
-                resetHandler();
-                break;
+        operation: (item) => actionHandler(item),
 
-            case 'DEL':
-                removeLetterHandler();
-                break;
+        '=': () =>
+            prevValue &&
+            currValue &&
+            setCurrValue(calculateObj[operation](prevValue), setPrevValue('')),
 
-            case '/':
-            case '*':
-            case '+':
-            case '-':
-                actionHandler(item);
-                break;
-
-            case '=':
-                equalsHandler();
-                break;
-
-            case '.':
-                dotHandler();
-                break;
-
-            default:
-                return setCurrValue((state) => state + item);
-        }
+        '.': () => dotHandler(),
+        number: (item) => setCurrValue((state) => state + item),
     };
 
     return (
@@ -114,14 +79,14 @@ function App() {
                 </Monitor>
 
                 <ButtonsWrapper>
-                    {calculatorData.map((item, index) => (
+                    {calculatorData.map(({ value, role }, index) => (
                         <Button
                             key={index}
                             first={index === 0}
                             last={index === calculatorData.length - 1}
-                            onClick={() => mainSwitch(item)}
+                            onClick={() => mainSwitchObj[role](value)}
                         >
-                            {item === '/' ? <>&#247;</> : item}
+                            {value === '/' ? <>&#247;</> : value}
                         </Button>
                     ))}
                 </ButtonsWrapper>
